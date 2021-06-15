@@ -11,7 +11,6 @@
     "compile": "tsc -p ./",
     "lint": "eslint -c .eslintrc.js --ext .ts ./ts",
     "watch": "tsc -watch -p ./",
-    "test": "echo \"Error: no test specified\" && exit 1",
     "test-integration": "mocha --require ts-node/register --recursive ./test/integration/**/*.ts"
   },
   "repository": {
