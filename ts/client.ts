@@ -7,14 +7,12 @@ export class HippoClient {
         private readonly baseUrl: string,
         private readonly token: string,
         private agent?: https.Agent
-    ) {
-        // Suppress unused member errors for now
-        console.log(this.baseUrl);
-        console.log(this.token);
-    }
+    ) { }
 
     requestConfig(headers?: { [key: string]: string }): AxiosRequestConfig | undefined {
-        return requestConfig(this.agent, headers);
+        const authHeaders = headers || {};
+        authHeaders['Authorization'] ||= `Bearer ${this.token}`;
+        return requestConfig(this.agent, authHeaders);
     }
 
     public static async new(baseUrl: string, username: string, password: string, agent?: https.Agent): Promise<HippoClient> {
@@ -33,6 +31,16 @@ export class HippoClient {
             return responseData.token;
         }
         throw new Error(`createToken: request failed: ${response.status} ${response.statusText}`);
+    }
+
+    public async registerRevision(bindleName: string, revisionNumber: string): Promise<void> {
+        const body = JSON.stringify({ appStorageId: bindleName, revisionNumber });
+        const url = `${this.baseUrl}api/revision`;
+        const response = await axios.post(url, body, this.requestConfig());
+        if (response.status === 201) {
+            return;
+        }
+        throw new Error(`registerRevision: request failed: ${response.status} ${response.statusText}`);
     }
 }
 

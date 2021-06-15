@@ -9,6 +9,7 @@ const DEMO_SERVER_URL = 'https://localhost:5001';
 
 describe("Hippo", () => {
     it("can log in", async () => {
-        await hippo.HippoClient.new(DEMO_SERVER_URL, "admin", "Passw0rd!", testAgent);
+        const client = await hippo.HippoClient.new(DEMO_SERVER_URL, "admin", "Passw0rd!", testAgent);
+        await client.registerRevision("hippos.rocks/helloworld", "1.1.3");
     });
 });
