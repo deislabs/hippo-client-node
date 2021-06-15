@@ -1,0 +1,66 @@
+{
+    "env": {
+        "es6": true,
+        "node": true
+    },
+    "extends": [
+        "eslint:recommended",
+        "plugin:@typescript-eslint/recommended"
+    ],
+    "parser": "@typescript-eslint/parser",
+    "parserOptions": {
+        "sourceType": "module"
+    },
+    "plugins": [
+        "@typescript-eslint",
+        "@typescript-eslint/tslint"
+    ],
+    "rules": {
+        "@typescript-eslint/member-delimiter-style": [
+            "warn",
+            {
+                "multiline": {
+                    "delimiter": "semi",
+                    "requireLast": true
+                },
+                "singleline": {
+                    "delimiter": "semi",
+                    "requireLast": false
+                }
+            }
+        ],
+        "@typescript-eslint/prefer-for-of": "error",
+        "@typescript-eslint/semi": [
+            "warn",
+            "always"
+        ],
+        "@typescript-eslint/type-annotation-spacing": "warn",
+        "@typescript-eslint/no-explicit-any": "off",
+        "arrow-parens": [
+            "warn",
+            "always"
+        ],
+        "camelcase": "error",
+        "curly": [
+            "error"
+        ],
+        "eqeqeq": [
+            "error",
+            "always"
+        ],
+        "id-match": "error",
+        "no-debugger": "error",
+        "no-multiple-empty-lines": "warn",
+        "no-trailing-spaces": "warn",
+        "no-underscore-dangle": "warn",
+        "no-unreachable": "warn",
+        "no-var": "error",
+        "prefer-const": "error",
+        "prefer-template": "warn",
+        "quote-props": [
+            "error",
+            "as-needed"
+        ],
+        "spaced-comment": "warn"
+    }
+}
