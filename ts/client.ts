@@ -1,6 +1,6 @@
 import axios, { AxiosRequestConfig } from 'axios';
 import * as https from 'https';
-import { CreateTokenResponse } from './types';
+import { CreateApplicationResponse, CreateTokenResponse } from './types';
 
 export class HippoClient {
     constructor(
@@ -41,6 +41,17 @@ export class HippoClient {
             return;
         }
         throw new Error(`registerRevision: request failed: ${response.status} ${response.statusText}`);
+    }
+
+    public async createApplication(applicationName: string, bindleName: string): Promise<string> {
+        const body = JSON.stringify({ applicationName, storageId: bindleName });
+        const url = `${this.baseUrl}api/application`;
+        const response = await axios.post(url, body, this.requestConfig());
+        if (response.status === 201) {
+            const responseData = response.data as CreateApplicationResponse;
+            return responseData.applicationGUID;
+        }
+        throw new Error(`createApplication: request failed: ${response.status} ${response.statusText}`);
     }
 }
 
