@@ -1,6 +1,6 @@
 import axios, { AxiosRequestConfig } from 'axios';
 import * as https from 'https';
-import { CreateApplicationResponse, CreateTokenResponse } from './types';
+import { ChannelConfig, ChannelConfigFixedRevision, CreateApplicationResponse, CreateChannelResponse, CreateTokenResponse } from './types';
 
 export class HippoClient {
     constructor(
@@ -53,6 +53,24 @@ export class HippoClient {
         }
         throw new Error(`createApplication: request failed: ${response.status} ${response.statusText}`);
     }
+
+    public async createChannel(applicationId: string, channelName: string, channelConfig: ChannelConfig): Promise<string> {
+        const body = JSON.stringify({ appId: applicationId, name: channelName, ...channelConfigToAPI(channelConfig) });
+        const url = `${this.baseUrl}api/channel`;
+        try {
+            const response = await axios.post(url, body, this.requestConfig());
+            if (response.status === 201) {
+                const responseData = response.data as CreateChannelResponse;
+                return responseData.id;
+            }
+            throw new Error(`createChannel: request failed: ${response.status} ${response.statusText}`);
+        } catch (e) {
+            if (e.response.data.errors) {
+                throw new Error(JSON.stringify(e.response.data.errors));
+            }
+            throw e;
+        }
+    }
 }
 
 function requestConfig(agent: https.Agent | undefined, headers?: { [key: string]: string }): AxiosRequestConfig | undefined {
@@ -63,5 +81,22 @@ function requestConfig(agent: https.Agent | undefined, headers?: { [key: string]
         return { httpsAgent: agent, headers: finalHeaders };
     }
     return { headers: finalHeaders };
+}
+
+function isFixedRevisionConfig(channelConfig: ChannelConfig): channelConfig is ChannelConfigFixedRevision {
+    return !!((<ChannelConfigFixedRevision>channelConfig).revisionNumber);
+}
+
+function channelConfigToAPI(channelConfig: ChannelConfig): { [key: string]: string | boolean } {
+    if (isFixedRevisionConfig(channelConfig)) {
+        return {
+            fixedToRevision: true,
+            revisionNumber: channelConfig.revisionNumber,
+        };
+    }
+    return {
+        fixedToRevision: false,
+        revisionRange: channelConfig.revisionRange,
+    };
 }
 
