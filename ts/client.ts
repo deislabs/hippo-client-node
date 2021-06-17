@@ -36,40 +36,50 @@ export class HippoClient {
     public async registerRevision(bindleName: string, revisionNumber: string): Promise<void> {
         const body = JSON.stringify({ appStorageId: bindleName, revisionNumber });
         const url = `${this.baseUrl}api/revision`;
-        const response = await axios.post(url, body, this.requestConfig());
-        if (response.status === 201) {
-            return;
-        }
-        throw new Error(`registerRevision: request failed: ${response.status} ${response.statusText}`);
+        return withValidationErrorTranslation(async () => {
+            const response = await axios.post(url, body, this.requestConfig());
+            if (response.status === 201) {
+                return;
+            }
+            throw new Error(`registerRevision: request failed: ${response.status} ${response.statusText}`);
+        });
     }
 
     public async createApplication(applicationName: string, bindleName: string): Promise<string> {
         const body = JSON.stringify({ applicationName, storageId: bindleName });
         const url = `${this.baseUrl}api/application`;
-        const response = await axios.post(url, body, this.requestConfig());
-        if (response.status === 201) {
-            const responseData = response.data as CreateApplicationResponse;
-            return responseData.applicationGUID;
-        }
-        throw new Error(`createApplication: request failed: ${response.status} ${response.statusText}`);
+        return withValidationErrorTranslation(async () => {
+            const response = await axios.post(url, body, this.requestConfig());
+            if (response.status === 201) {
+                const responseData = response.data as CreateApplicationResponse;
+                return responseData.applicationGUID;
+            }
+            throw new Error(`createApplication: request failed: ${response.status} ${response.statusText}`);
+        });
     }
 
     public async createChannel(applicationId: string, channelName: string, channelConfig: ChannelConfig): Promise<string> {
         const body = JSON.stringify({ appId: applicationId, name: channelName, ...channelConfigToAPI(channelConfig) });
         const url = `${this.baseUrl}api/channel`;
-        try {
+        return withValidationErrorTranslation(async () => {
             const response = await axios.post(url, body, this.requestConfig());
             if (response.status === 201) {
                 const responseData = response.data as CreateChannelResponse;
                 return responseData.id;
             }
             throw new Error(`createChannel: request failed: ${response.status} ${response.statusText}`);
-        } catch (e) {
-            if (e.response.data.errors) {
-                throw new Error(JSON.stringify(e.response.data.errors));
-            }
-            throw e;
+        });
+    }
+}
+
+async function withValidationErrorTranslation<T>(fn: () => Promise<T>): Promise<T> {
+    try {
+        return await fn();
+    } catch (e) {
+        if (e.response.data.errors) {
+            throw new Error(JSON.stringify(e.response.data.errors));
         }
+        throw e;
     }
 }
 
