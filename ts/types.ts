@@ -4,7 +4,7 @@ export interface CreateTokenResponse {
 }
 
 export interface CreateApplicationResponse {
-    readonly applicationGUID: string;
+    readonly id: string;
 }
 
 export interface CreateChannelResponse {

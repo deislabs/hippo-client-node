@@ -52,7 +52,7 @@ export class HippoClient {
             const response = await axios.post(url, body, this.requestConfig());
             if (response.status === 201) {
                 const responseData = response.data as CreateApplicationResponse;
-                return responseData.applicationGUID;
+                return responseData.id;
             }
             throw new Error(`createApplication: request failed: ${response.status} ${response.statusText}`);
         });
@@ -97,15 +97,15 @@ function isFixedRevisionConfig(channelConfig: ChannelConfig): channelConfig is C
     return !!((<ChannelConfigFixedRevision>channelConfig).revisionNumber);
 }
 
-function channelConfigToAPI(channelConfig: ChannelConfig): { [key: string]: string | boolean } {
+function channelConfigToAPI(channelConfig: ChannelConfig): { [key: string]: string |number } {
     if (isFixedRevisionConfig(channelConfig)) {
         return {
-            fixedToRevision: true,
+            revisionSelectionStrategy: 1,
             revisionNumber: channelConfig.revisionNumber,
         };
     }
     return {
-        fixedToRevision: false,
+        revisionSelectionStrategy: 0,
         revisionRange: channelConfig.revisionRange,
     };
 }
