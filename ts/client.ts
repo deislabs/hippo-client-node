@@ -1,6 +1,6 @@
 import axios, { AxiosRequestConfig } from 'axios';
 import * as https from 'https';
-import { CreateTokenResponse } from './types';
+import { ChannelConfig, ChannelConfigFixedRevision, CreateApplicationResponse, CreateChannelResponse, CreateTokenResponse } from './types';
 
 export class HippoClient {
     constructor(
@@ -36,11 +36,50 @@ export class HippoClient {
     public async registerRevision(bindleName: string, revisionNumber: string): Promise<void> {
         const body = JSON.stringify({ appStorageId: bindleName, revisionNumber });
         const url = `${this.baseUrl}api/revision`;
-        const response = await axios.post(url, body, this.requestConfig());
-        if (response.status === 201) {
-            return;
+        return withValidationErrorTranslation(async () => {
+            const response = await axios.post(url, body, this.requestConfig());
+            if (response.status === 201) {
+                return;
+            }
+            throw new Error(`registerRevision: request failed: ${response.status} ${response.statusText}`);
+        });
+    }
+
+    public async createApplication(applicationName: string, bindleName: string): Promise<string> {
+        const body = JSON.stringify({ applicationName, storageId: bindleName });
+        const url = `${this.baseUrl}api/application`;
+        return withValidationErrorTranslation(async () => {
+            const response = await axios.post(url, body, this.requestConfig());
+            if (response.status === 201) {
+                const responseData = response.data as CreateApplicationResponse;
+                return responseData.id;
+            }
+            throw new Error(`createApplication: request failed: ${response.status} ${response.statusText}`);
+        });
+    }
+
+    public async createChannel(applicationId: string, channelName: string, channelConfig: ChannelConfig): Promise<string> {
+        const body = JSON.stringify({ appId: applicationId, name: channelName, ...channelConfigToAPI(channelConfig) });
+        const url = `${this.baseUrl}api/channel`;
+        return withValidationErrorTranslation(async () => {
+            const response = await axios.post(url, body, this.requestConfig());
+            if (response.status === 201) {
+                const responseData = response.data as CreateChannelResponse;
+                return responseData.id;
+            }
+            throw new Error(`createChannel: request failed: ${response.status} ${response.statusText}`);
+        });
+    }
+}
+
+async function withValidationErrorTranslation<T>(fn: () => Promise<T>): Promise<T> {
+    try {
+        return await fn();
+    } catch (e) {
+        if (e.response.data.errors) {
+            throw new Error(JSON.stringify(e.response.data.errors));
         }
-        throw new Error(`registerRevision: request failed: ${response.status} ${response.statusText}`);
+        throw e;
     }
 }
 
@@ -52,5 +91,22 @@ function requestConfig(agent: https.Agent | undefined, headers?: { [key: string]
         return { httpsAgent: agent, headers: finalHeaders };
     }
     return { headers: finalHeaders };
+}
+
+function isFixedRevisionConfig(channelConfig: ChannelConfig): channelConfig is ChannelConfigFixedRevision {
+    return !!((<ChannelConfigFixedRevision>channelConfig).revisionNumber);
+}
+
+function channelConfigToAPI(channelConfig: ChannelConfig): { [key: string]: string |number } {
+    if (isFixedRevisionConfig(channelConfig)) {
+        return {
+            revisionSelectionStrategy: 1,
+            revisionNumber: channelConfig.revisionNumber,
+        };
+    }
+    return {
+        revisionSelectionStrategy: 0,
+        revisionRange: channelConfig.revisionRange,
+    };
 }
 
