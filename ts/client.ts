@@ -58,8 +58,8 @@ export class HippoClient {
         });
     }
 
-    public async createChannel(applicationId: string, channelName: string, channelConfig: ChannelConfig): Promise<string> {
-        const body = JSON.stringify({ appId: applicationId, name: channelName, ...channelConfigToAPI(channelConfig) });
+    public async createChannel(applicationId: string, channelName: string, domainName: string, channelConfig: ChannelConfig): Promise<string> {
+        const body = JSON.stringify({ appId: applicationId, name: channelName, domain: domainName, ...channelConfigToAPI(channelConfig) });
         const url = `${this.baseUrl}api/channel`;
         return withValidationErrorTranslation(async () => {
             const response = await axios.post(url, body, this.requestConfig());
