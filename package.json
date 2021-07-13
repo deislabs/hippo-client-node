@@ -1,6 +1,6 @@
 {
   "name": "hippo-js",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "A Node.js client for Hippo",
   "main": "js/index.js",
   "types": "js/index.d.ts",
