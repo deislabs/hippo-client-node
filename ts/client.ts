@@ -23,7 +23,7 @@ export class HippoClient {
 
     private static async createToken(baseUrl: string, username: string, password: string, agent?: https.Agent): Promise<string> {
         const body = JSON.stringify({ username, password });
-        const url = `${baseUrl}account/createtoken`;
+        const url = `${baseUrl}api/account/createtoken`;
         const config = requestConfig(agent);
         const response = await axios.post(url, body, config);
         if (response.status === 201) {
